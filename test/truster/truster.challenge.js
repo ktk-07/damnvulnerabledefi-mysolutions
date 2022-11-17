@@ -29,6 +29,21 @@ describe('[Challenge] Truster', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE  */
+        /*
+        * My Thought process is that we would create a new contract initialise the DamnvValuable token together with the truster lender pool's address
+        * With taht we would call transfer externally and transfer all the tokens to the attacker contract
+        * But apparently i can't run .call{}
+        * So the next option would be to use the flashloan with a call data to approve the dvt to spend the flashloan's tokens
+        * with that we will transfer all the tokens with the transferFrom function
+        */
+
+       
+        const AttackTrusterLenderPool = await ethers.getContractFactory("AttackTrusterLenderPool",attacker);
+        const attackerContract = await AttackTrusterLenderPool.deploy(this.pool.address,this.token.address);
+        await attackerContract.attack(attacker.address,this.token.address,attackerContract.address);
+
+
+       // Attacker has taken all tokens from the pool
     });
 
     after(async function () {

