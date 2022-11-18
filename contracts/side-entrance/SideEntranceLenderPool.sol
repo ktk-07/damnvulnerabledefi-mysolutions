@@ -32,6 +32,8 @@ contract SideEntranceLenderPool {
         
         IFlashLoanEtherReceiver(msg.sender).execute{value: amount}();
 
+        //This did works
+        require(balances[msg.sender] == 1000 ether, "Looks like execute did not work");        
         require(address(this).balance >= balanceBefore, "Flash loan hasn't been paid back");        
     }
 }
