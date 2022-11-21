@@ -55,11 +55,30 @@ describe('[Challenge] Side entrance', function () {
         await attackerContract.executeFlashLoan();
         await attackerContract.drain();
         // How to send money from contract to a EOA address directly in solidity?
+        // I just use the call function/ i wanted to use ethers to send the transaction below but it did not work
         // tx = {
         //     to:attacker.address,
         //     value:ethers.utils.parseEther("1000")
         // }
         // await attackerContract.sendTransaction(tx);
+
+
+        //Reflections
+        /**
+         * First mistake is i did not understand interfaces/ abstracts and contract inheritance that well, i knew the general idea but did not really know how it worked
+         * Second mistake is that i did not implement the recieve () external payable function{} and fallback () external payable function {} 
+         * and let to the contract not being able to recieve the funds sent from withdrawinf
+         * Third mistake is not so much solidity but i forgot how detached heads work in git.
+         * So i commited all the changes on the detached head
+         * and i forgot how to merge
+         * 
+         * Sources to help
+         * Git detached head -https://stackoverflow.com/questions/10228760/how-do-i-fix-a-git-detached-head
+         * Sending ether to a  payable function -https://ethereum.stackexchange.com/questions/123676/how-to-call-a-payable-function-and-pay-from-the-contract-balance
+         * Interfaces/Abstracts-https://ethereum.stackexchange.com/questions/133825/what-is-the-practical-purpose-of-interface-contracts
+         *                     -https://solidity-by-example.org/interface/  
+         *                      
+         */
     });
 
     after(async function () {
