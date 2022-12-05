@@ -117,6 +117,7 @@ describe('[Challenge] Puppet', function () {
          * Need to steal 100000 DVT tkns
          * 
          * calculating all the prices
+         * Usages of the white paper for V1 for calculate the value https://hackmd.io/@HaydenAdams/HJ9jLsfTz#ERC20-%E2%87%84-ERC20-Trades
          * // Sell ERC20 for ETH
             const inputAmount = userInputTokenValue (1000)
             const inputReserve = tokenContract.methods.balanceOf(exchangeAddress).call() theres 10 dvt here
@@ -127,12 +128,16 @@ describe('[Challenge] Puppet', function () {
             const denominator = inputReserve * 1000 + inputAmount * 997 = 1007000
             const outputAmount = numerator / denominator = 99.275
 
-            Eth_pool = 0.0098307
+
+            Eth_pool = 0.099307
             DVT_POOl = 1010
 
-            price of token = 0.0099307 /1010 = 0.00000983237 eth
+            price of token = 0.099307 /1010 = 0.0000983237 eth
             you want 100000 tokens 
-            100000* 0.0000099307 * 2 = 1.966475  eth is enough
+            100000* 0.000099307 * 2 = 19.66475  eth is enough
+            But the transaction only does not fail when i put in 20 ether of collateral
+            Why is that so?
+            I calculated wrongly, we need 20 eth to take everything about of the liquidity pool instead of 2
          * 
          */
 
@@ -169,8 +174,10 @@ describe('[Challenge] Puppet', function () {
         //The borrowing price should be 0
         const attackBal = await ethers.provider.getBalance(attacker.address);
         //100000
-        await AttackPool.borrow(ethers.utils.parseEther(`100000`),{value:attackBal.sub(ethers.utils.parseEther("1"))});
+        // await AttackPool.borrow(ethers.utils.parseEther(`100000`),{value:attackBal.sub(ethers.utils.parseEther("1"))});
+        await AttackPool.borrow(ethers.utils.parseEther(`100000`),{value:ethers.utils.parseEther("20")});
 
+        //my erros was that i did this await AttackPool.borrow(ethers.utils.parseEther(`100000)); without sending any money to the contract
     });
 
     after(async function () {
